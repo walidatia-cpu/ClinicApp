@@ -1,4 +1,5 @@
-﻿using ClinicApp.Core.Contracts.Identity;
+﻿using ClinicApp.Core.Constant;
+using ClinicApp.Core.Contracts.Identity;
 using ClinicApp.Core.Entities;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -29,11 +30,14 @@ namespace ClinicApp.BLL.Services.Identity
         }
         public async Task CreateDefaultRolesAsync()
         {
-            if (!await RoleExistsAsync("Admin"))
-                await CreateRoleAsync("Admin");
+            if (!await RoleExistsAsync(Role.SuperAdmin.ToString()))
+                await CreateRoleAsync(Role.SuperAdmin.ToString());
 
-            if (!await RoleExistsAsync("User"))
-                await CreateRoleAsync("User");
+            if (!await RoleExistsAsync(Role.Doctor.ToString()))
+                await CreateRoleAsync(Role.Doctor.ToString());
+
+            if (!await RoleExistsAsync(Role.Patient.ToString()))
+                await CreateRoleAsync(Role.Patient.ToString());
         }
     }
 }

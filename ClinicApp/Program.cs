@@ -1,4 +1,7 @@
 using ClinicApp.Extensions;
+using ClinicApp.Filters.ActionFilter;
+using ClinicApp.Middleware;
+using ClinicApp.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,13 +12,20 @@ builder.Services.AddJWTAuthentication(builder.Configuration);
 //Register My Services
 builder.Services.AddMyDependencyGroup();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add(typeof(ValidateModelAttribute));
+}); 
 
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
+
+app.AddGlobalErrorHandler();
 
 // migrate database 
 using (var scope = app.Services.CreateScope())
@@ -31,7 +41,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

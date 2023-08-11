@@ -5,10 +5,13 @@ using ClinicApp.Core.Contracts.Identity;
 using ClinicApp.Core.Entities;
 using ClinicApp.Core.JWT;
 using ClinicApp.DAL.Data;
+using ClinicApp.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.DotNet.Scaffolding.Shared.ProjectModel;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using NuGet.Protocol.Core.Types;
 using NuGet.Protocol.Plugins;
@@ -33,7 +36,10 @@ namespace ClinicApp.Extensions
                 options.Password.RequireLowercase = false;
             }).AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
 
-
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
+            });
             return services;
         }
         public static IServiceCollection AddMyDependencyGroup(this IServiceCollection services)
@@ -43,6 +49,7 @@ namespace ClinicApp.Extensions
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IAsyncRepository<>), typeof(Repository<>));
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddScoped<JwtAuthorizeAttribute>();
 
             return services;
         }
@@ -66,22 +73,25 @@ namespace ClinicApp.Extensions
         }
         public static IServiceCollection AddJWTAuthentication(this IServiceCollection services, IConfiguration config)
         {
-            // Configure JWT authentication
+            var appSettingsSection = config.GetSection("JwtSettings");
+            services.Configure<JWTSettings>(appSettingsSection);
+            
             var jwtSettings = config.GetSection("JwtSettings").Get<JWTSettings>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        // Configure the same token validation parameters as in Startup.cs
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Secret)),
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidIssuer = jwtSettings.Issuer,
-            ValidAudience = jwtSettings.Audience
-        };
-    });
+                        .AddJwtBearer(options =>
+                        {
+        
+                            options.TokenValidationParameters = new TokenValidationParameters
+                            {
+                                ValidateIssuerSigningKey = true,
+                                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Secret)),
+                                ValidateIssuer = true,
+                                ValidateAudience = true,
+                                ValidIssuer = jwtSettings.Issuer,
+                                ValidAudience = jwtSettings.Audience
+                            };
+                           
+                        });
             return services;
         }
     }
