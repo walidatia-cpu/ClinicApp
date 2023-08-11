@@ -1,3 +1,4 @@
+using ClinicApp.AutoMapper;
 using ClinicApp.Extensions;
 using ClinicApp.Filters.ActionFilter;
 using ClinicApp.Middleware;
@@ -11,7 +12,7 @@ builder.Services.AddJWTAuthentication(builder.Configuration);
 
 //Register My Services
 builder.Services.AddMyDependencyGroup();
-
+builder.Services.AddAutoMapper(typeof(MappingProfiles));
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add(typeof(ValidateModelAttribute));

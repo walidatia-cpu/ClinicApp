@@ -4,6 +4,7 @@ using ClinicApp.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ClinicApp.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230811171251_add_Patient_table")]
+    partial class add_Patient_table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -114,35 +117,6 @@ namespace ClinicApp.DAL.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("ClinicApp.Core.Entities.Doctor", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AccountId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("ModificationDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId")
-                        .IsUnique();
-
-                    b.ToTable("Doctor");
-                });
-
             modelBuilder.Entity("ClinicApp.Core.Entities.Patient", b =>
                 {
                     b.Property<int>("Id")
@@ -160,9 +134,6 @@ namespace ClinicApp.DAL.Migrations
 
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("DoctorId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Forenames")
                         .IsRequired()
@@ -251,8 +222,6 @@ namespace ClinicApp.DAL.Migrations
 
                     b.HasIndex("AccountId")
                         .IsUnique();
-
-                    b.HasIndex("DoctorId");
 
                     b.ToTable("Patients");
                 });
@@ -363,17 +332,6 @@ namespace ClinicApp.DAL.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("ClinicApp.Core.Entities.Doctor", b =>
-                {
-                    b.HasOne("ClinicApp.Core.Entities.ApplicationUser", "Account")
-                        .WithOne("Doctor")
-                        .HasForeignKey("ClinicApp.Core.Entities.Doctor", "AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-                });
-
             modelBuilder.Entity("ClinicApp.Core.Entities.Patient", b =>
                 {
                     b.HasOne("ClinicApp.Core.Entities.ApplicationUser", "Account")
@@ -382,15 +340,7 @@ namespace ClinicApp.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ClinicApp.Core.Entities.Doctor", "Doctor")
-                        .WithMany("Patients")
-                        .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Account");
-
-                    b.Navigation("Doctor");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -446,16 +396,8 @@ namespace ClinicApp.DAL.Migrations
 
             modelBuilder.Entity("ClinicApp.Core.Entities.ApplicationUser", b =>
                 {
-                    b.Navigation("Doctor")
-                        .IsRequired();
-
                     b.Navigation("Patient")
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("ClinicApp.Core.Entities.Doctor", b =>
-                {
-                    b.Navigation("Patients");
                 });
 #pragma warning restore 612, 618
         }

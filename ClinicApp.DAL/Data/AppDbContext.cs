@@ -15,13 +15,15 @@ namespace ClinicApp.DAL.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
-        // Add your other DbSets here
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
             // Add any customizations to the Identity model if needed
         }
+       
+        // Add your other DbSets here
+        public DbSet<Patient> Patients { get; set; }
+
     }
 }
