@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -69,7 +70,29 @@ namespace ClinicApp.BLL.Services
 
         public async Task<IEnumerable<TEntity>> GetAllAsync()
         {
+           
             return await _dbSet.ToListAsync();
+        }
+        public async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            return await _dbSet.Where(predicate).ToListAsync();
+        }
+
+        public async Task<IEnumerable<TEntity>> GetAllAsync(int page,int count)
+        {
+            if (page <= 0)
+                page = 1;
+            return await _dbSet.Skip((page-1)*count).Take(count).ToListAsync();
+        }
+
+        public int GetTotalCountAsync()
+        {
+            return  _dbSet.Count();
+        }
+
+        public async Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            return await _dbSet.FirstOrDefaultAsync(predicate);
         }
     }
 }

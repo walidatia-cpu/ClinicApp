@@ -1,7 +1,11 @@
 ﻿using ClinicApp.BLL.Services;
+using ClinicApp.BLL.Services.Doctors;
 using ClinicApp.BLL.Services.Identity;
+using ClinicApp.BLL.Services.Patients;
 using ClinicApp.Core.Contracts;
+using ClinicApp.Core.Contracts.Doctors;
 using ClinicApp.Core.Contracts.Identity;
+using ClinicApp.Core.Contracts.Patients;
 using ClinicApp.Core.Entities;
 using ClinicApp.Core.JWT;
 using ClinicApp.DAL.Data;
@@ -9,13 +13,8 @@ using ClinicApp.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.DotNet.Scaffolding.Shared.ProjectModel;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using NuGet.Protocol.Core.Types;
-using NuGet.Protocol.Plugins;
-using System.Configuration;
 using System.Text;
 
 namespace ClinicApp.Extensions
@@ -24,7 +23,7 @@ namespace ClinicApp.Extensions
     {
         public static IServiceCollection AddConfig(this IServiceCollection services, IConfiguration config)
         {
-            services.AddDbContext<AppDbContext>(options => options.UseSqlServer(config.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<AppDbContext>(options => options.UseLazyLoadingProxies().UseSqlServer(config.GetConnectionString("DefaultConnection")));
             services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
             {
                 // Configure identity options if needed
@@ -44,12 +43,28 @@ namespace ClinicApp.Extensions
         }
         public static IServiceCollection AddMyDependencyGroup(this IServiceCollection services)
         {
+            #region Identity
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRoleService, RoleService>();
+            #endregion
+
+            #region Repository
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IAsyncRepository<>), typeof(Repository<>));
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            #endregion
+
+            #region Security
             services.AddScoped<JwtAuthorizeAttribute>();
+            #endregion
+
+            #region PatientService
+            services.AddScoped<IPatientService, PatientService>();
+            #endregion
+
+            #region DoctorService
+            services.AddScoped<IDoctorService, DoctorService>();
+            #endregion
 
             return services;
         }

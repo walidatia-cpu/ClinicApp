@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ClinicApp.Core\ClinicApp.Core.csproj" />
     <ProjectReference Include="..\ClinicApp.DAL\ClinicApp.DAL.csproj" />
   </ItemGroup>

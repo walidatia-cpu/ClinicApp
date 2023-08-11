@@ -13,9 +13,10 @@ namespace ClinicApp.Core.Contracts.Identity
     public interface IUserService
     {
         Task<bool> UserExistsAsync(string email);
-        Task CreateUserAsync(string email, string password, string roleName);
+        Task<CommonResponse> CreateUserAsync(string email, string password, string roleName);
         Task CreateDefaultUsersAsync();
         Task<CommonResponse> Login(LoginVM model);
         Task<ApplicationUser> GetCurrentUser();
+        Task<bool> CkeckUserInRole(ApplicationUser user, string role);
     }
 }

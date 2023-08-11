@@ -1,8 +1,10 @@
 ﻿using ClinicApp.Core.Constant;
+using ClinicApp.Core.Contracts.Doctors;
 using ClinicApp.Core.Contracts.Identity;
 using ClinicApp.Core.DTO;
 using ClinicApp.Core.Entities;
 using ClinicApp.Core.JWT;
+using ClinicApp.Core.VM.Doctors;
 using ClinicApp.Core.VM.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -23,18 +25,20 @@ namespace ClinicApp.BLL.Services.Identity
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IRoleService _roleService;
-       
+
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly IOptions<JWTSettings> options;
         private readonly IHttpContextAccessor httpContextAccessor;
+        private readonly IDoctorService doctorService;
 
-        public UserService(UserManager<ApplicationUser> userManager, IRoleService roleRepository,  RoleManager<ApplicationRole> roleManager, IOptions<JWTSettings> options, IHttpContextAccessor httpContextAccessor)
+        public UserService(UserManager<ApplicationUser> userManager, IRoleService roleRepository, RoleManager<ApplicationRole> roleManager, IOptions<JWTSettings> options, IHttpContextAccessor httpContextAccessor, IDoctorService doctorService)
         {
             _userManager = userManager;
             _roleService = roleRepository;
             _roleManager = roleManager;
             this.options = options;
             this.httpContextAccessor = httpContextAccessor;
+            this.doctorService = doctorService;
         }
 
         public async Task<bool> UserExistsAsync(string email)
@@ -43,23 +47,36 @@ namespace ClinicApp.BLL.Services.Identity
             return user != null;
         }
 
-        public async Task CreateUserAsync(string UserName, string password, string roleName)
+        public async Task<CommonResponse> CreateUserAsync(string UserName, string password, string roleName)
         {
-            var user = new ApplicationUser
+            try
             {
-                UserName = UserName,
-                Email = UserName
-            };
 
-            var result = await _userManager.CreateAsync(user, password);
 
-            if (result.Succeeded)
-            {
-                if (!await _roleService.RoleExistsAsync(roleName))
-                    await _roleService.CreateRoleAsync(roleName);
+                var user = new ApplicationUser
+                {
+                    UserName = UserName,
+                    Email = UserName
+                };
 
-                await _userManager.AddToRoleAsync(user, roleName);
+                var result = await _userManager.CreateAsync(user, password);
+
+                if (result.Succeeded)
+                {
+                    if (!await _roleService.RoleExistsAsync(roleName))
+                        await _roleService.CreateRoleAsync(roleName);
+                    await _userManager.AddToRoleAsync(user, roleName);
+                    return new CommonResponse { RequestStatus = RequestStatus.Success, Message = "Success", Data = user.Id };
+
+                }
+                else
+                    return new CommonResponse { RequestStatus = RequestStatus.ServerError, Message = "ServerError" };
             }
+            catch (Exception ex)
+            {
+                return new CommonResponse { RequestStatus = RequestStatus.ServerError, Message = "ServerError" };
+            }
+
         }
         public async Task CreateDefaultUsersAsync()
         {
@@ -69,12 +86,11 @@ namespace ClinicApp.BLL.Services.Identity
             }
             if (!await UserExistsAsync("Doctor"))
             {
-                await CreateUserAsync("Doctor", "Doctor@123", Role.Doctor.ToString());
+                var _result = await CreateUserAsync("Doctor", "Doctor@123", Role.Doctor.ToString());
+                if (_result.RequestStatus == RequestStatus.Success)
+                    await doctorService.CreateDoctorAsync(new DoctorVM { AccountId = _result.Data.ToString() });
             }
-            if (!await UserExistsAsync("Patient"))
-            {
-                await CreateUserAsync("Patient", "Patient@123", Role.Patient.ToString());
-            }
+
         }
 
         private JwtSecurityToken GetToken(List<Claim> authClaims)
@@ -118,16 +134,21 @@ namespace ClinicApp.BLL.Services.Identity
                 {
                     token = new JwtSecurityTokenHandler().WriteToken(token),
                 };
-                return new CommonResponse { Message = "Success", RequestStatus = RequestStatus.Success,Data= _data };
+                return new CommonResponse { Message = "Success", RequestStatus = RequestStatus.Success, Data = _data };
             }
             return new CommonResponse { Message = "Unauthorized", RequestStatus = RequestStatus.Unauthorized };
-        
+
         }
 
         public async Task<ApplicationUser> GetCurrentUser()
         {
-           string userid = httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-           return await _userManager.FindByIdAsync(userid);
+            string userid = httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return await _userManager.FindByIdAsync(userid);
         }
+        public async Task<bool> CkeckUserInRole(ApplicationUser user, string role)
+        {
+            return await _userManager.IsInRoleAsync(user, role);
+        }
+
     }
 }

@@ -1,4 +1,6 @@
-﻿using ClinicApp.Core.JWT;
+﻿using ClinicApp.BLL.Services.Identity;
+using ClinicApp.Core.Contracts.Identity;
+using ClinicApp.Core.JWT;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,13 +15,15 @@ namespace ClinicApp.Security
     public class JwtAuthorizeAttribute : AuthorizeAttribute, IAuthorizationFilter
     {
         public IOptions<JWTSettings> JwtSettings { get; set; }
+        public IUserService UserService { get; }
 
-        public JwtAuthorizeAttribute(IOptions<JWTSettings> jwtSettings)
+        public JwtAuthorizeAttribute(IOptions<JWTSettings> jwtSettings, IUserService userService)
         {
             JwtSettings = jwtSettings;
+            UserService = userService;
         }
 
-        public void OnAuthorization(AuthorizationFilterContext context)
+        public async void OnAuthorization(AuthorizationFilterContext context)
         {
            var _jwtSettings = JwtSettings.Value;
             var token = context.HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
@@ -48,6 +52,12 @@ namespace ClinicApp.Security
                 SecurityToken validatedToken;
                 var principal = tokenHandler.ValidateToken(token, validationParameters, out validatedToken);
                 context.HttpContext.User = principal;
+                var user = UserService.GetCurrentUser().Result;
+                if (user == null)
+                {
+                    context.Result = new Microsoft.AspNetCore.Mvc.UnauthorizedResult();
+                    return;
+                }
             }
             catch (Exception)
             {
