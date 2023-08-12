@@ -69,11 +69,27 @@ namespace ClinicApp.BLL.Services.Patients
             }
         }
 
-        public async Task<CommonResponse> GetPatientByIdAsync(int patientId)
+        public async Task<CommonResponse> GetAllPatientByDoctorIdAsync(int page, int count, int doctorId)
         {
             try
             {
-                var _Patient = await patientRepository.FirstOrDefaultAsync(c => c.Id == patientId);
+                var TotalCount = patientRepository.GetTotalCountAsync(c=>c.DoctorId==doctorId);
+                var _list = await patientRepository.GetAllAsync(c=>c.DoctorId==doctorId,page, count);
+                var Patients = mapper.Map<List<PatientDTO>>(_list);
+                var _data = new { TotalCount, Patients };
+                return new CommonResponse { RequestStatus = RequestStatus.Success, Message = "Success", Data = _data };
+            }
+            catch (Exception ex)
+            {
+                return new CommonResponse { RequestStatus = RequestStatus.ServerError, Message = "ServerError" };
+            }
+        }
+
+        public async Task<CommonResponse> GetPatientByIdByDoctorAsync(int patientId, int doctorId)
+        {
+            try
+            {
+                var _Patient = await patientRepository.FirstOrDefaultAsync(c => c.Id == patientId && c.DoctorId==doctorId);
                 if (_Patient == null)
                     return new CommonResponse { RequestStatus = RequestStatus.NotFound, Message = "NotFound" };
 
@@ -86,11 +102,11 @@ namespace ClinicApp.BLL.Services.Patients
             }
         }
 
-        public async Task<CommonResponse> RemovePatientByIdAsync(int patientId)
+        public async Task<CommonResponse> RemovePatientByIdByDoctorAsync(int patientId, int doctorId)
         {
             try
             {
-                var _Patient = await patientRepository.FirstOrDefaultAsync(c => c.Id == patientId);
+                var _Patient = await patientRepository.FirstOrDefaultAsync(c => c.Id == patientId && c.DoctorId==doctorId);
                 if (_Patient == null)
                     return new CommonResponse { RequestStatus = RequestStatus.NotFound, Message = "NotFound" };
 
@@ -105,11 +121,11 @@ namespace ClinicApp.BLL.Services.Patients
             }
         }
 
-        public async Task<CommonResponse> UpdatePatientAsync(PatientUpdateVM patientVM)
+        public async Task<CommonResponse> UpdatePatientByDoctorAsync(PatientUpdateVM patientVM, int doctorId)
         {
             try
             {
-                var _Patient = await patientRepository.FirstOrDefaultAsync(c => c.Id == patientVM.Id);
+                var _Patient = await patientRepository.FirstOrDefaultAsync(c => c.Id == patientVM.Id && c.DoctorId==doctorId);
                 if (_Patient == null)
                     return new CommonResponse { RequestStatus = RequestStatus.NotFound, Message = "NotFound" };
                 _Patient.DateOfBirth = patientVM.DateOfBirth;
@@ -140,11 +156,11 @@ namespace ClinicApp.BLL.Services.Patients
             }
         }
 
-        public async Task<CommonResponse> UpdatePatientStatusAsync(int patientId)
+        public async Task<CommonResponse> UpdatePatientStatusByDoctorAsync(int patientId, int doctorId)
         {
             try
             {
-                var _Patient = await patientRepository.FirstOrDefaultAsync(c => c.Id == patientId);
+                var _Patient = await patientRepository.FirstOrDefaultAsync(c => c.Id == patientId && c.DoctorId == doctorId);
                 if (_Patient == null)
                     return new CommonResponse { RequestStatus = RequestStatus.NotFound, Message = "NotFound" };
                 _Patient.IsActive = !_Patient.IsActive;

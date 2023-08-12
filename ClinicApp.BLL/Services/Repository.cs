@@ -84,10 +84,20 @@ namespace ClinicApp.BLL.Services
                 page = 1;
             return await _dbSet.Skip((page-1)*count).Take(count).ToListAsync();
         }
+        public async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate, int page, int count)
+        {
+            if (page <= 0)
+                page = 1;
+            return await _dbSet.Where(predicate).Skip((page - 1) * count).Take(count).ToListAsync();
+        }
 
         public int GetTotalCountAsync()
         {
             return  _dbSet.Count();
+        }
+        public int GetTotalCountAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            return _dbSet.Where(predicate).Count();
         }
 
         public async Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate)

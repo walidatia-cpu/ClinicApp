@@ -17,6 +17,8 @@ namespace ClinicApp.Core.Contracts
         Task<IEnumerable<TEntity>> GetAllAsync();
         Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate);
         Task<IEnumerable<TEntity>> GetAllAsync(int page, int count);
+        Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate, int page, int count);
         int GetTotalCountAsync();
+        int GetTotalCountAsync(Expression<Func<TEntity, bool>> predicate);
     }
 }

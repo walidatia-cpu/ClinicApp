@@ -11,11 +11,12 @@ namespace ClinicApp.Core.Contracts.Patients
     public interface IPatientService
     {
         Task<CommonResponse> CreatePatientAsync(PatientVM patientVM);
-        Task<CommonResponse> UpdatePatientAsync(PatientUpdateVM patientVM);
-        Task<CommonResponse> UpdatePatientStatusAsync(int patientId);
+        Task<CommonResponse> UpdatePatientByDoctorAsync(PatientUpdateVM patientVM, int doctorId);
+        Task<CommonResponse> UpdatePatientStatusByDoctorAsync(int patientId, int doctorId);
         Task<CommonResponse> GetAllPatientAsync(int page,int count);
-        Task<CommonResponse> GetPatientByIdAsync(int patientId);
-        Task<CommonResponse> RemovePatientByIdAsync(int patientId);
+        Task<CommonResponse> GetAllPatientByDoctorIdAsync(int page,int count,int doctorId);
+        Task<CommonResponse> GetPatientByIdByDoctorAsync(int patientId, int doctorId);
+        Task<CommonResponse> RemovePatientByIdByDoctorAsync(int patientId, int doctorId);
         
     }
 }

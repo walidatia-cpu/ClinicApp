@@ -40,8 +40,14 @@ namespace ClinicApp.Controllers
             return Ok(Result);
         }
 
+        [HttpGet]
+        [Route("v1/test")]
+        public async Task<IActionResult> test()
+        {
+           return Ok(new {data="Walid" });
+        }
 
-        
+
 
 
     }

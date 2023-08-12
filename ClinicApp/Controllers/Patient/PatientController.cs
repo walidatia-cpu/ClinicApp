@@ -35,10 +35,12 @@ namespace ClinicApp.Controllers.Patient
         [Route("v1/Add")]
         public async Task<IActionResult> CreatePatient([FromBody] PatientVM model)
         {
+            Random rnd = new Random();
+            int number = rnd.Next(1, 5);
             var currentuser = await userService.GetCurrentUser();
             if(!await userService.CkeckUserInRole(currentuser,Role.Doctor.ToString()))
                 return Ok(new CommonResponse { RequestStatus=RequestStatus.AccessDenied, Message= "AccessDenied" });
-            var _Result = await userService.CreateUserAsync(model.PasNumber.ToString()+"@patient", model.PasNumber.ToString()+"@patient", Role.Patient.ToString());
+            var _Result = await userService.CreateUserAsync(model.PasNumber.ToString()+"@"+number.ToString(), model.PasNumber.ToString() + "@" + number.ToString(), Role.Patient.ToString());
             if (_Result.RequestStatus != RequestStatus.Success)
                 return Ok(_Result);
             var _doctor =await doctorService.GetDoctorByAccountIdAsync(currentuser.Id);
@@ -55,7 +57,8 @@ namespace ClinicApp.Controllers.Patient
             var currentuser = await userService.GetCurrentUser();
             if (!await userService.CkeckUserInRole(currentuser, Role.Doctor.ToString()))
                 return Ok(new CommonResponse { RequestStatus = RequestStatus.AccessDenied, Message = "AccessDenied" });
-            var Result = await patientService.UpdatePatientAsync(model);
+            var _doctor = await doctorService.GetDoctorByAccountIdAsync(currentuser.Id);
+            var Result = await patientService.UpdatePatientByDoctorAsync(model, _doctor.Id);
             return Ok(Result);
         }
 
@@ -63,33 +66,48 @@ namespace ClinicApp.Controllers.Patient
         [Route("v1/GetAll/page/{page}/count/{count}")]
         public async Task<IActionResult> GetAllPatient([FromRoute] int page, [FromRoute] int count)
         {
-            var Result = await patientService.GetAllPatientAsync(page, count);
+            var currentuser = await userService.GetCurrentUser();
+            if (!await userService.CkeckUserInRole(currentuser, Role.Doctor.ToString()))
+                return Ok(new CommonResponse { RequestStatus = RequestStatus.AccessDenied, Message = "AccessDenied" });
+            var _doctor = await doctorService.GetDoctorByAccountIdAsync(currentuser.Id);
+            var Result = await patientService.GetAllPatientByDoctorIdAsync(page, count, _doctor.Id);
             return Ok(Result);
         }
         [HttpPost]
         [Route("v1/GetById/{Id}")]
         public async Task<IActionResult> GetPatientById([FromRoute] int Id)
         {
-            var Result = await patientService.GetPatientByIdAsync(Id);
+            var currentuser = await userService.GetCurrentUser();
+            if (!await userService.CkeckUserInRole(currentuser, Role.Doctor.ToString()))
+                return Ok(new CommonResponse { RequestStatus = RequestStatus.AccessDenied, Message = "AccessDenied" });
+            var _doctor = await doctorService.GetDoctorByAccountIdAsync(currentuser.Id);
+            var Result = await patientService.GetPatientByIdByDoctorAsync(Id,_doctor.Id);
             return Ok(Result);
         }
         [HttpPost]
         [Route("v1/UpdateStatusById/{Id}")]
         public async Task<IActionResult> UpdatePatientStatus([FromRoute] int Id)
         {
-            var Result = await patientService.UpdatePatientStatusAsync(Id);
+            var currentuser = await userService.GetCurrentUser();
+            if (!await userService.CkeckUserInRole(currentuser, Role.Doctor.ToString()))
+                return Ok(new CommonResponse { RequestStatus = RequestStatus.AccessDenied, Message = "AccessDenied" });
+            var _doctor = await doctorService.GetDoctorByAccountIdAsync(currentuser.Id);
+            var Result = await patientService.UpdatePatientStatusByDoctorAsync(Id, _doctor.Id);
             return Ok(Result);
         }
 
         [HttpPost]
-        [Route("v1/RemoveStatusById/{Id}")]
+        [Route("v1/RemovePatientById/{Id}")]
         public async Task<IActionResult> RemovePatientById([FromRoute] int Id)
         {
-
-            var Result = await patientService.RemovePatientByIdAsync(Id);
+            var currentuser = await userService.GetCurrentUser();
+            if (!await userService.CkeckUserInRole(currentuser, Role.Doctor.ToString()))
+                return Ok(new CommonResponse { RequestStatus = RequestStatus.AccessDenied, Message = "AccessDenied" });
+            var _doctor = await doctorService.GetDoctorByAccountIdAsync(currentuser.Id);
+            var Result = await patientService.RemovePatientByIdByDoctorAsync(Id, _doctor.Id);
             return Ok(Result);
         }
-
+       
 
     }
 }
