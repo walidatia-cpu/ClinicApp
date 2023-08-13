@@ -36,7 +36,7 @@ namespace ClinicApp.Controllers.Patient
         public async Task<IActionResult> CreatePatient([FromBody] PatientVM model)
         {
             Random rnd = new Random();
-            int number = rnd.Next(1, 5);
+            int number = rnd.Next(1000, 9999);
             var currentuser = await userService.GetCurrentUser();
             if(!await userService.CkeckUserInRole(currentuser,Role.Doctor.ToString()))
                 return Ok(new CommonResponse { RequestStatus=RequestStatus.AccessDenied, Message= "AccessDenied" });
